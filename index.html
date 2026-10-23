@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Мои задачи</title>
+
+  <style>
+    body {
+      max-width: 450px;
+      margin: 40px auto;
+      padding: 20px;
+      font: 18px Arial;
+      background: #f0f4ff;
+    }
+
+    input, button {
+      padding: 12px;
+      font: inherit;
+      margin-bottom: 10px;
+    }
+
+    button {
+      background: #2678e8;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    li {
+      margin: 12px 0;
+      overflow-wrap: anywhere;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Моё первое приложение</h1>
+
+  <form id="form">
+    <input id="task" placeholder="Напиши задачу" required>
+    <button>Добавить</button>
+  </form>
+
+  <ul id="list"></ul>
+
+  <script>
+    const form = document.getElementById('form');
+    const input = document.getElementById('task');
+    const list = document.getElementById('list');
+
+    let tasks = [];
+
+    try {
+      const saved = JSON.parse(localStorage.getItem('myTasks') || '[]');
+      if (Array.isArray(saved)) {
+        tasks = saved.filter(task => typeof task === 'string');
+      }
+    } catch {}
+
+    function showTask(text) {
+      const item = document.createElement('li');
+      item.textContent = text;
+      list.appendChild(item);
+    }
+
+    tasks.forEach(showTask);
+
+    form.onsubmit = function(event) {
+      event.preventDefault();
+
+      const text = input.value.trim();
+      if (!text) return;
+
+      tasks.push(text);
+      showTask(text);
+      input.value = '';
+
+      try {
+        localStorage.setItem('myTasks', JSON.stringify(tasks));
+      } catch {
+        alert('Браузер не разрешил сохранить задачи.');
+      }
+    };
+  </script>
+</body>
+</html>
