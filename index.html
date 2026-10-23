@@ -44,68 +44,91 @@
   </form>
 
   <ul id="list"></ul>
+<script>
+  const form = document.getElementById('form');
+  const input = document.getElementById('task');
+  const list = document.getElementById('list');
+  let tasks = [];
 
-  <script>
-    const form = document.getElementById('form');
-    const input = document.getElementById('task');
-    const list = document.getElementById('list');
+  try {
+    const saved = JSON.parse(localStorage.getItem('myTasks') || '[]');
 
-    let tasks = [];
+    if (Array.isArray(saved)) {
+      tasks = saved.map(task =>
+        typeof task === 'string' ? { text: task, done: false } : task
+      ).filter(task =>
+        task && typeof task.text === 'string' && typeof task.done === 'boolean'
+      );
+    }
+  } catch {}
 
-    try {
-      const saved = JSON.parse(localStorage.getItem('myTasks') || '[]');
-      if (Array.isArray(saved)) {
-        tasks = saved.filter(task => typeof task === 'string');
-      }
-    } catch {}
-
-function showTask(text) {
-  const item = document.createElement('li');
-
-  const title = document.createElement('span');
-  title.textContent = text + ' ';
-
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.textContent = 'Удалить';
-
-  button.onclick = function() {
-    const index = Array.from(list.children).indexOf(item);
-    if (index < 0) return;
-
-    tasks.splice(index, 1);
-    item.remove();
-
+  function saveTasks() {
     try {
       localStorage.setItem('myTasks', JSON.stringify(tasks));
     } catch {
-      alert('Задача удалена с экрана, но сохранить изменение не удалось.');
+      alert('Изменения видны на экране, но сохранить их не удалось.');
     }
+  }
+
+  function drawTasks() {
+    list.replaceChildren();
+
+    tasks.forEach((task, index) => {
+      const item = document.createElement('li');
+      const label = document.createElement('label');
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = task.done;
+
+      const title = document.createElement('span');
+      title.textContent = ' ' + task.text + ' ';
+
+      function updateTitle() {
+        title.style.textDecoration = task.done ? 'line-through' : 'none';
+        title.style.color = task.done ? '#6b7280' : 'inherit';
+      }
+
+      checkbox.onchange = function() {
+        task.done = checkbox.checked;
+        updateTitle();
+        saveTasks();
+      };
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.textContent = 'Удалить';
+
+      button.onclick = function() {
+        tasks.splice(index, 1);
+        saveTasks();
+        drawTasks();
+      };
+
+      updateTitle();
+      label.appendChild(checkbox);
+      label.appendChild(title);
+      item.appendChild(label);
+      item.appendChild(button);
+      list.appendChild(item);
+    });
+  }
+
+  form.onsubmit = function(event) {
+    event.preventDefault();
+
+    const text = input.value.trim();
+    if (!text) return;
+
+    tasks.push({ text: text, done: false });
+    saveTasks();
+    drawTasks();
+
+    input.value = '';
+    input.focus();
   };
 
-  item.appendChild(title);
-  item.appendChild(button);
-  list.appendChild(item);
-}
-
-    tasks.forEach(showTask);
-
-    form.onsubmit = function(event) {
-      event.preventDefault();
-
-      const text = input.value.trim();
-      if (!text) return;
-
-      tasks.push(text);
-      showTask(text);
-      input.value = '';
-
-      try {
-        localStorage.setItem('myTasks', JSON.stringify(tasks));
-      } catch {
-        alert('Браузер не разрешил сохранить задачи.');
-      }
-    };
-  </script>
+  drawTasks();
+</script>
 </body>
 </html>
