@@ -59,11 +59,34 @@
       }
     } catch {}
 
-    function showTask(text) {
-      const item = document.createElement('li');
-      item.textContent = text;
-      list.appendChild(item);
+function showTask(text) {
+  const item = document.createElement('li');
+
+  const title = document.createElement('span');
+  title.textContent = text + ' ';
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = 'Удалить';
+
+  button.onclick = function() {
+    const index = Array.from(list.children).indexOf(item);
+    if (index < 0) return;
+
+    tasks.splice(index, 1);
+    item.remove();
+
+    try {
+      localStorage.setItem('myTasks', JSON.stringify(tasks));
+    } catch {
+      alert('Задача удалена с экрана, но сохранить изменение не удалось.');
     }
+  };
+
+  item.appendChild(title);
+  item.appendChild(button);
+  list.appendChild(item);
+}
 
     tasks.forEach(showTask);
 
