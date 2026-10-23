@@ -71,49 +71,74 @@
   }
 
   function drawTasks() {
-    list.replaceChildren();
+  list.replaceChildren();
 
-    tasks.forEach((task, index) => {
-      const item = document.createElement('li');
-      const label = document.createElement('label');
+  const orderedTasks = [...tasks].sort((a, b) =>
+    (b.important ? 1 : 0) - (a.important ? 1 : 0)
+  );
 
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = task.done;
+  orderedTasks.forEach(task => {
+    const item = document.createElement('li');
 
-      const title = document.createElement('span');
-      title.textContent = ' ' + task.text + ' ';
+    const star = document.createElement('button');
+    star.type = 'button';
+    star.textContent = task.important ? '★' : '☆';
 
-      function updateTitle() {
-        title.style.textDecoration = task.done ? 'line-through' : 'none';
-        title.style.color = task.done ? '#6b7280' : 'inherit';
-      }
+    star.setAttribute('aria-pressed', String(Boolean(task.important)));
+    star.setAttribute('aria-label',
+      (task.important ? 'Снять важность: ' : 'Отметить важной: ') + task.text
+    );
 
-      checkbox.onchange = function() {
-        task.done = checkbox.checked;
-        updateTitle();
-        saveTasks();
-      };
+    star.style.background = task.important ? '#f5b700' : '#64748b';
+    star.style.color = task.important ? '#222222' : 'white';
 
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.textContent = 'Удалить';
+    star.onclick = function() {
+      task.important = !task.important;
+      saveTasks();
+      drawTasks();
+    };
 
-      button.onclick = function() {
-        tasks.splice(index, 1);
-        saveTasks();
-        drawTasks();
-      };
+    const label = document.createElement('label');
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = task.done;
 
+    const title = document.createElement('span');
+    title.textContent = ' ' + task.text + ' ';
+
+    function updateTitle() {
+      title.style.textDecoration = task.done ? 'line-through' : 'none';
+      title.style.color = task.done ? '#6b7280' : 'inherit';
+    }
+
+    checkbox.onchange = function() {
+      task.done = checkbox.checked;
       updateTitle();
-      label.appendChild(checkbox);
-      label.appendChild(title);
-      item.appendChild(label);
-      item.appendChild(button);
-      list.appendChild(item);
-    });
-  }
+      saveTasks();
+    };
 
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Удалить';
+
+    button.onclick = function() {
+      const index = tasks.indexOf(task);
+      if (index < 0) return;
+
+      tasks.splice(index, 1);
+      saveTasks();
+      drawTasks();
+    };
+
+    updateTitle();
+    label.appendChild(checkbox);
+    label.appendChild(title);
+    item.appendChild(star);
+    item.appendChild(label);
+    item.appendChild(button);
+    list.appendChild(item);
+  });
+}
   form.onsubmit = function(event) {
     event.preventDefault();
 
